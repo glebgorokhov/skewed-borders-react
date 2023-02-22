@@ -29,7 +29,7 @@ export default function Shape({ width, height, id, el, corners, svg, className }
     height: 0,
   })
 
-  // Where the magic happens
+  // Subscribe to size changes of parent element
   useResizeObserver(el, (entry) => setElSize({
     width: entry.borderBoxSize[0].inlineSize ?? 0,
     height: entry.borderBoxSize[0].blockSize ?? 0,
