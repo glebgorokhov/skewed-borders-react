@@ -1,5 +1,4 @@
 import {RefObject, useState} from "react";
-import useSize from "./useSize";
 import useResizeObserver from "@react-hook/resize-observer";
 
 type Coordinate = {
