@@ -1,5 +1,4 @@
-import {RefObject, useState} from "react";
-import useResizeObserver from "@react-hook/resize-observer";
+import {RefObject, useEffect, useState} from "react";
 
 type Coordinate = {
   x: number,
@@ -21,20 +20,41 @@ type Props = {
 }
 
 export default function Shape({ width, height, id, el, corners, svg, className }: Props) {
-  const defaultWidth = 100;
-  const defaultHeight = 50;
+  const [resizeObserver, setResizeObserver] = useState<null | ResizeObserver>(null);
 
   const [elSize, setElSize] = useState({
     width: 0,
     height: 0,
   })
 
-  // Subscribe to size changes of parent element
-  useResizeObserver(el, (entry) => setElSize({
-    width: entry.borderBoxSize[0].inlineSize ?? 0,
-    height: entry.borderBoxSize[0].blockSize ?? 0,
-  }))
+  useEffect(() => {
+    if (el?.current) {
+      if (!resizeObserver) {
+        setResizeObserver(new ResizeObserver((entries) => {
+          for (const entry of entries) {
+            if (entry.contentBoxSize) {
+              const {inlineSize, blockSize} = entry.borderBoxSize[0];
+              setElSize({
+                width: inlineSize,
+                height: blockSize,
+              })
+            }
+          }
+        }));
+      } else {
+        resizeObserver.observe(el.current);
+      }
+    }
 
+    return () => {
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+    }
+  }, [el, resizeObserver]);
+
+  const defaultWidth = 100;
+  const defaultHeight = 50;
   const computedWidth = elSize.width || width || defaultWidth;
   const computedHeight = elSize.height || height || defaultHeight;
   const coordinates: Coordinate[] = [];
@@ -213,5 +233,6 @@ export default function Shape({ width, height, id, el, corners, svg, className }
         <path d={path}/>
       </clipPath>
       {svg && <path d={path}/>}
-  </svg>)
+    </svg>
+  )
 }
